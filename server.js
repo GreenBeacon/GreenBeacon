@@ -6,53 +6,85 @@ var GitHubStrategy = require('passport-github2').Strategy;
 // Middleware
 var parser = require('body-parser');
 var authorize = require('./authHelpers.js');
-
-// var gitClientID = '2bf2f840356d251d928c';
-// var gitSecret = 'c606d2126dd0ea186e3dda5d53f1646bf778cc10';
-//
-// passport.serializeUser(function(user, done) {
-//   done(null, user);
-// });
-//
-// passport.deserializeUser(function(obj, done) {
-//   done(null, obj);
-// });
-//
-//
-// passport.use(new GitHubStrategy({
-//     clientID: gitClientID,
-//     clientSecret: gitSecret,
-//     callbackURL: "http://127.0.0.1:3000/auth/github/callback"
-//   },
-//   function(accessToken, refreshToken, profile, done) {
-//     // asynchronous verification, for effect...
-//     process.nextTick(function () {
-//
-//       // To keep the example simple, the user's GitHub profile is returned to
-//       // represent the logged-in user.  In a typical application, you would want
-//       // to associate the GitHub account with a user record in your database,
-//       // and return that user instead.
-//       return done(null, profile);
-//     });
-//   }
-// ));
-
+var routes = require('./routes.js');
+var config = require('./config.js');
 var app = express();
 
+console.log(config.keys)
 
-// Set what we are listening on.
 
-var port = process.env.PORT || 3000;
-// Logging and parsing
+passport.serializeUser((id, done) => {
+  done(null, id);
+});
+
+passport.deserializeUser((user,done) => {
+
+        if (!err) done(null, user);
+        else done(err, null);
+});
+
+passport.use(new GitHubStrategy({
+  clientID: config.keys.gitHubClientId,
+  clientSecret: config.keys.gitHubSecretKey,
+  callbackURL: config.keys.gitCallbackUrl,
+}, function(accessToken, refreshToken, profile, done) {
+
+  process.nextTick(function () {
+
+    return done(null, profile);
+    })
+  }
+))
+
+
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, X-HTTP-Method-Override, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+  });
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(express.static(__dirname + '/Client'));
 app.use(parser.json());
+// app.use(session({ secret: 'login to our new site',
+//           resave : true,
+//           saveUninitialized: true,
+//           cookie: {maxAge: 30000},
+//     }));
+
+app.get('/auth/github',
+
+        passport.authenticate('github', { scope: [ 'user:email' ] }),
+        function(req, res){
+          // The request will be redirected to GitHub for authentication, so this
+          // function will not be called.
+        });
+app.get('/callback',
+        passport.authenticate('github', { failureRedirect: '/session' }),
+        (req, res) => {
+          console.log('SESSION:', req.session);
+          res.redirect('/');
+        });
+
+routes.router(app);
+
+app.set('port', process.env.PORT || 3000);
+// Logging and parsing
+
 
 // Serve the client files
-app.use(express.static(__dirname + '/Client'));
 
-app.listen(port, function(){
-  console.log('listening on port: ', port)
+
+
+
+
+app.listen(app.get('port'), function(){
+  console.log('listening on port: ', app.get('port'))
 });
 
 
-authorize.auth(app);
 module.exports.app = app;
