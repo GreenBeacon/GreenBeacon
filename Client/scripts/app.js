@@ -1,40 +1,3 @@
-//initialize app module, include services and auth dependencies
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // app obj
 
 //init
@@ -44,18 +7,18 @@
 
 //fetch - get /tickets ->
 	//1. call helper funciton ->
-		//renderTicket
+		//renderTicket 
 			//1. render text, id, username
 			//2. handle checking for isClaimed; isSolved -> render at the bottom
 
-//send ticket - post req ->
+//send ticket - post req -> 
 	//1. grab data from form;
 	//2. call fetch()
 
 
-//claim ticket - put req ->
+//claim ticket - put req -> 
 	//1. send property to ticket object with id
 
 
-//solve ticket - put req ->
+//solve ticket - put req -> 
 	//1. send property to ticket object with id
