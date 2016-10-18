@@ -11,7 +11,6 @@ var tickets = [
 module.exports = {
 
   isLoggedIn: (req, res, next) => {
-    console.log('isLogged in ', req.session)
     if(req.session && req.session.passport.user.username && req.session.passport.user.provider === 'github'){
       next();
     } else {
