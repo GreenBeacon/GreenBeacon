@@ -18,7 +18,7 @@ angular.module('app', ['app.auth', 'app.queue', 'app.services', 'ngRoute'])
 		// 	controller: 'FormController'
 		// })
 		.otherwise({
-			redirectTo: '/tickets'
+			redirectTo: '/#/tickets'
 		})
 		
 

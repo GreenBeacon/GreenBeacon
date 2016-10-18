@@ -38,7 +38,8 @@ angular.module('app.services', [])
 .factory('Auth', ['$http', '$window', function($http, $window){
 
   var signin = function() {
-    $window.location = '/auth/github';
+   $window.location = '/auth/github';
+
   }
 
   return {

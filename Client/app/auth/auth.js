@@ -8,7 +8,7 @@ angular.module('app.auth', [])
 
   $scope.signin = function(){
     Auth.signin();
-
+    
   }
 
 }])
