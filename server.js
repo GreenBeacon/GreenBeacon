@@ -5,54 +5,53 @@ var session = require('express-session');
 var GitHubStrategy = require('passport-github2').Strategy;
 // Middleware
 var parser = require('body-parser');
-var authorize = require('./authHelpers.js');
+//var authorize = require('./authHelpers.js');
+var routes = require('./routes.js');
+var config = require('./config.js');
 
-// var gitClientID = '2bf2f840356d251d928c';
-// var gitSecret = 'c606d2126dd0ea186e3dda5d53f1646bf778cc10';
-//
-// passport.serializeUser(function(user, done) {
-//   done(null, user);
-// });
-//
-// passport.deserializeUser(function(obj, done) {
-//   done(null, obj);
-// });
-//
-//
-// passport.use(new GitHubStrategy({
-//     clientID: gitClientID,
-//     clientSecret: gitSecret,
-//     callbackURL: "http://127.0.0.1:3000/auth/github/callback"
-//   },
-//   function(accessToken, refreshToken, profile, done) {
-//     // asynchronous verification, for effect...
-//     process.nextTick(function () {
-//
-//       // To keep the example simple, the user's GitHub profile is returned to
-//       // represent the logged-in user.  In a typical application, you would want
-//       // to associate the GitHub account with a user record in your database,
-//       // and return that user instead.
-//       return done(null, profile);
-//     });
-//   }
-// ));
 
 var app = express();
 
+passport.serializeUser((id, done) => {
+  done(null, id);
+});
 
-// Set what we are listening on.
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
 
-var port = process.env.PORT || 3000;
-// Logging and parsing
+passport.use(new GitHubStrategy({
+  clientID: config.keys.gitHubClientId,
+  clientSecret: config.keys.gitHubSecretKey,
+  callbackURL: config.keys.gitCallbackUrl,
+}, (accessToken, refreshToken, profile, done) => {
+
+    process.nextTick(() => {
+      return done(null, profile);
+    });
+  }
+));
+
+app.use(session({
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: true,
+  cookie: {maxAge: 600000*3} //30 mins
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(express.static(__dirname + '/Client'));
 app.use(parser.json());
 
-// Serve the client files
-app.use(express.static(__dirname + '/Client'));
+routes.router(app);
 
-app.listen(port, function(){
-  console.log('listening on port: ', port)
+app.set('port', process.env.PORT || 3000);
+
+app.listen(app.get('port'), () => {
+  console.log('listening on port: ', app.get('port'))
 });
 
 
-authorize.auth(app);
 module.exports.app = app;
