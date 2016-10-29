@@ -14,8 +14,37 @@ body {
   font-size: 54px
 }
 
- h2 {
-  font-size: 40px
+h1 {
+	margin-top: 4%;
+	margin-bottom: 0;
+}
+
+
+table {
+	margin-top: 2.5%;
+}
+
+tr, td{
+	padding: 50px;
+	border: 1px solid white;
+	color: gray;
+}
+
+th {
+	padding: 15px;
+	border: 1px solid white;
+}
+
+input{
+	margin: 10px;
+}
+
+input[type=number] {
+	width: 2em;
+}
+
+.hidden {
+	display: none;
 }
 
 #support {
@@ -28,20 +57,44 @@ body {
   width: 250px;
 }
 
+.ticketNav {
+	color: white;
+
+
+}
+
+.lobby {
+	display: inline-block;
+	margin-right: -10px;
+
+}
+
+.user {
+	display: inline-block;
+
+}
+
 .list-group {
-	height: 575px;
+	height: 25em;
 	overflow: auto;
 }
 
-.list-group, .input-group {
-   width: 450px;
+
+.list-group, .input-group, .davidcrappybuttons {
+   width: 25em;
 }
+
 .list-group {
   margin-right: 100px;
 }
 
+.lobby, .user {
+	display: inline-block;
+
+}
+
 .input-group {
-	padding-top: 42px;
+
 	display: inline-block;
 }
 
@@ -49,11 +102,19 @@ body {
 	padding-bottom: 2px;
 }
 
+
 .list-group-item, .form-control, .input-text {
 	background-color: #E8E9F9;
 }
+
 .locationtext {
-	color: #E8E9F9;
+	margin-left: 10px;
+	color: white;
+}
+
+.red {
+	color: red;
+  text-shadow: 0 0 0.2em #FF6C6C;
 }
 
 .input-text {
@@ -70,7 +131,6 @@ body {
 
 .btn {
 	color: #613DC1;
-  
 }
 
 .btn-1 {
@@ -86,6 +146,19 @@ body {
 	background-color: grey;
 }
 
+.studentTicket {
+	background-color: #48D962;
+}
+
+.fellowTicket {
+	background-color: #FFFFA4;
+}
+
+.instructorTicket {
+	background-color: #E45454;
+}
+
+
 #queueContainer, #map {
 	display: inline-block
 }
@@ -96,20 +169,33 @@ body {
   margin-top: 20px
 }
 
-#map {
-	float: right;
-	margin-top: -30px;
-	position: absolute;
-}
-
-
-
 #signin {
 	width: 40%;
 	margin: 0 auto;
 	text-align:center;
 	padding-top: 50px;
-  margin-top: 80px;
+	margin-top: 80px;
+}
+
+#map {
+	float: right;
+	margin-top: -30px;
+	width: 30%;
+	position: absolute;
+	text-align: center;
+}
+
+.bathroomAlert {
+	margin-left: 30%;
+	margin-top: 60%;
+	position: absolute;
+	width: 70%;
+	height: 10%;
+	color: #BE04F0;
+	background-color: #3D3340;
+	z-index: 99;
+	border: 1px solid gray;
+	border-radius: 10px;
 }
 
 .hiddenDot, .hiddenPulse {
@@ -124,8 +210,8 @@ body {
 }
 
 .pulse {
-	width: 10px;
-	height: 10px;
+	width: 13px;
+	height: 13px;
 	-webkit-border-radius: 30px;
 	-moz-border-radius: 30px;
 	border-radius: 30px;
@@ -147,8 +233,8 @@ body {
 	-moz-animation-iteration-count: infinite;
 	animation-iteration-count: infinite;
 	position: absolute;
-	top: -15px;
-	left: -15px;
+	top: -14.5px;
+	left: -14.5px;
 	z-index: 1;
 	opacity: 0;
 }
@@ -207,8 +293,88 @@ footer {
 	width: 50px;
 }
 
+.headerbar {
+  color: white;
+  text-align: center;
+  display: block;
+  height: 50px;
+  width: 100%;
+  border: 10px;
+
+}
+
+.logoimg {
+  height: 100%;
+  margin: auto;
+  float: left;
+}
+
+.welcomeMessage {
+  color: white;
+  display: inline-block;
+  margin-top: 6px;
+
+}
+
+.role {
+  color: green;
+  font-weight: bolder;
+}
+
+.signout, .admin {
+  color: white;
+  float: right;
+  cursor: pointer;
+  margin-top: 6px;
+
+}
+
+.signinbtn {
+  background-color: #E8E9F9;
+  margin-left: 11px
+}
+
+.signinbtn:hover, .signout:hover, .admin:hover {
+  background-color: #424242;
+}
+
+.seanissoocool {
+	background-color: red;
 
 
+}
+
+.admintable {
+  width: 100%;
+  margin: 0px;
+  border: 0px;
+  margin-top: 20px;
+}
+
+.admintable tr:nth-child(2) {
+  height: 1px;
+  padding: 0px;
+  margin: 0px;
+}
+
+.admintable td {
+  text-align: center;
+  padding: 20px;
+}
+
+.admintable th {
+  text-align: center;
+  padding: 0px;
+  margin: 0px;
+  border: 0px;
+}
+
+.adminpage {
+  font-size: 1em;
+}
+
+
+/*extra stuff I don't think we need (but just in case):*/
 .clearfix {
   overflow: auto;
 }
@@ -219,40 +385,14 @@ footer {
   margin: 0 auto;
   padding-left: 5px;
   margin-bottom: 30px;
-
 }
 
-.logo .logoimg {
-  max-width:100%; 
-  max-height:100%;
-  margin:auto;
-  display:block;
-}
 
-.headerq {
-  display: inline;
-  clear: both;
-}
+/*.headerq {
+  display: block;
+<<<<<<< HEAD
+}*/
 
-.signout {
-  float: right;
-  margin-top: 40px;
-  margin-right: 20px;
-  
-}
 
-.logoimgq {
-  width: 80px;
-  height: 80px;
-  margin-top: 20px;
-  margin-left: 20px;
-  float: left;
-}
-.signinbtn {
-  background-color: #E8E9F9;
-  margin-left: 11px
-}
-
-.signinbtn:hover, .signout:hover {
-  background-color: #c7c8d6;
-}
+/*.headerq {
+  display: block

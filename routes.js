@@ -21,12 +21,20 @@ module.exports.router = function(app) {
 
   app.put('/claimed', helpers.isLoggedIn, helpers.tagClaimed);
 
-  app.post('/eraseClaim', helpers.isLoggedIn, helpers.eraseClaim);
-
   app.put('/solved', helpers.isLoggedIn, helpers.tagSolved);
 
   app.put('/unsolved', helpers.isLoggedIn, helpers.tagUnSolved);
 
-  app.get('/signout', helpers.isLoggedIn, helpers.terminateSession)
+  app.get('/ticketLevel', helpers.isLoggedIn, helpers.getThresholds);
 
+  app.put('/ticketLevel', helpers.isLoggedIn, helpers.isAdmin, helpers.updateThresholds);
+
+  app.get('/users', helpers.isLoggedIn, helpers.isAdmin, helpers.getUsers);
+
+  app.put('/users', helpers.isLoggedIn, helpers.isAdmin, helpers.updateUser);
+
+  app.get('/signout', helpers.isLoggedIn, helpers.terminateSession);
+
+
+  app.put('/setpresolve', helpers.isLoggedIn, helpers.setPresolve)
 };
