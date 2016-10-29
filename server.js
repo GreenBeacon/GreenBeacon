@@ -1,14 +1,18 @@
 // basic server
 var express = require('express');
+var app = express();
+
 // Middleware
 var parser = require('body-parser');
 var session = require('express-session');
 var passport = require('passport');
 var GitHubStrategy = require('passport-github2').Strategy;
 var routes = require('./routes');
-var config = require('./example_config');
-
-var app = express();
+//this will only load the config file if on development server
+//this is so we don't receive an error on heroku
+if(process.env.NODE_ENV !== 'production') {
+  var config = require('./config.js');
+}
 
 passport.serializeUser(function(id, done) {
   done(null, id);
@@ -38,6 +42,8 @@ app.use(session({
   cookie: {maxAge: 600000*3} //30 mins
 }));
 
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -46,10 +52,50 @@ app.use(parser.json());
 
 routes.router(app);
 
+
 app.set('port', process.env.PORT || 3000);
 
-app.listen(app.get('port'), function() {
-  console.log('listening on port: ', app.get('port'))
+var server = app.listen(app.get('port'), function(){
+  console.log('listening on port' + app.get('port'));
 });
 
-module.exports.app = app;
+//socket.io
+var io = require('socket.io')(server);
+
+//establish socket connection
+io.on('connection', function(socket){
+  console.log('a user connected!');
+
+  //socket event listeners / emitters
+  socket.on('addTicket', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('claimTicket', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('eraseClaim', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('solveTicket', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('unsolveTicket', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('updateThresholds', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('unsolveTicket', function() {
+    io.emit('ticketChange');
+  });
+  socket.on('updateUser', function() {
+    io.emit('ticketChange');
+  });
+
+
+  socket.on('disconnect', function(){
+    console.log('a user disconnected!');
+  })
+});
+
+module.exports = server;
