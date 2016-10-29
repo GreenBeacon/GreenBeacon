@@ -1,0 +1,67 @@
+ <div ng-init='loadData()' class="adminpage">
+  <a href="/#/tickets" type="button" style="float: right; margin-right: 10px;" class="btn">BACK TO TICKETS</a>
+  <h1 align="center" style="color: white;">Update User Roles</h1>
+
+  <table align="center" class="admintable">
+    <tr>
+      <th><h2>Name</h2></th>
+      <th><h2>Authorization</h2></th>
+      <th><h2>Administrator</h2></th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>
+        <select ng-change="updateTable()" ng-model="person">
+          <option ng-repeat="user in users | orderBy: 'displayname'">
+            {{user.displayname}}
+          </option>
+        </select>
+      </td>
+      <td>
+        <select ng-model="selectedPerson.authorizationTitle">
+          <option selected>{{selectedPerson.authorizationTitle}}</option>
+          <option>Student</option>
+          <option>Fellow</option>
+          <option>Instructor</option>
+        </select>
+      </td>
+      <td>
+        <input type='checkbox' ng-checked="selectedPerson.isadmin" ng-model="selectedPerson.isadmin"/> Y/N
+      </td>
+      <td>
+        <input type='submit' ng-click="updateUser()"/>
+      </td>
+    </tr>
+  </table>
+  <h1 align="center" style="color:white;">Update Ticket Thresholds</h1>
+  <table align="center" class="admintable">
+    <tr>
+      <th><h1>Role</h1></th>
+      <th><h1>Threshold</h1></th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>
+        <select ng-change="displayThreshold()" ng-model="role">
+          <option>Student</option>
+          <option>Fellow</option>
+          <option>Instructor</option>
+        </select>
+      </td>
+      <td>
+        <input type=number style="width: 50px" placeholder="{{threshold}}" ng-model="threshold"/>
+      </td>
+      <td>
+        <input type='submit' ng-click="updateThresholds()"/>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+
+
+
+
+
+  <!--FOR DEV'S EYES ONLY - update DB schemas  -->

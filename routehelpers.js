@@ -5,6 +5,8 @@ var Sequelize = require('sequelize');
 var User = require('./db/schema').User;
 var Ticket = require('./db/schema').Ticket;
 var Claim = require('./db/schema').Claim;
+var TicketLevel = require('./db/schema').TicketLevel;
+
 
 // establish database connection for querying
 var db = new Sequelize(process.env.DATABASE_URL || 'postgres://localhost/beacon', {
@@ -42,6 +44,35 @@ module.exports = {
     }
   },
 
+  //validates whether the user is an administrator
+  isAdmin: function(req, res, next) {
+    User.find({where: {username: req.session.passport.user.username}})
+    .then(function(user){
+      if(user.isadmin === true){
+      next();
+    } else {
+      res.sendStatus(401);
+    }
+  });
+  },
+
+  getUsers: function(req, res) {
+    User.findAll()
+    .then(function(users) {
+      res.json(users);
+    });
+  },
+
+  updateUser: function(req, res) {
+    User.find({where: {username: req.body.username}})
+    .then(function(user){
+      user.update({ authorizationlevel: req.body.authorizationlevel, isadmin: req.body.isadmin})
+    })
+    .then(function(user){
+      res.json(user);
+    })
+  },
+
   terminateSession: function(req, res) {
     req.session.destroy();
     res.redirect('/#/signin');
@@ -49,13 +80,37 @@ module.exports = {
 
   // query for all tickets and claims that exist in DB and send to client
   getTickets: function(req, res) {
-    Ticket.findAll({ include: [User] })
-      .then(function(tickets) {
-        Claim.findAll({ include: [User, Ticket] })
-          .then(function(claims) {
-            res.send({ tickets: tickets, claims: claims, userID: req.session.userID });
+
+    User.find({ where: { username: req.user.username } }).then(function(user){
+
+      TicketLevel.find({where: { authorizationlevel: user.authorizationlevel }}).then(function(ticketLevel) {
+
+        Ticket.findAll({ include: [User], where: {$and: [{unsolvedCount: {lt: ticketLevel.threshold} }, {userId: {$not: user.id} }]}  })
+          .then(function(tickets) {
+            Claim.findAll({ include: [User, Ticket] })
+              .then(function(claims) {
+                res.send({ tickets: tickets, claims: claims, userID: req.session.userID, isadmin: user.isadmin, displayname: user.displayname, authorizationlevel: user.authorizationlevel });
+              });
           });
-      });
+      })
+
+      })
+
+  },
+
+  // query for tickets for currently signed in user
+  getUserTickets: function(req, res) {
+    // console.log(req);
+
+    User.find({ where: { username: req.user.username } }).then(function(user){
+      Ticket.findAll({ include: [User], where: {userId: user.id }  })
+        .then(function(tickets) {
+          Claim.findAll({ include: [User, Ticket] })
+            .then(function(claims) {
+              res.send({ tickets: tickets, claims: claims, userID: req.session.userID });
+            });
+        });
+    })
   },
 
   // create a new ticket instance and add it to the tickets table
@@ -114,11 +169,29 @@ module.exports = {
   tagUnSolved: function(req, res) {
     Ticket.find({ where: { id: req.body.id } })
       .then(function(ticket) {
-        ticket.update({ preSolved: false, claimed: false })
+        ticket.update({ preSolved: false, claimed: false, unsolvedCount: ticket.get('unsolvedCount') + 1})
           .then(function () {
             res.end();
           });
       });
+  },
+
+  getThresholds: function(req, res) {
+    TicketLevel.findAll({})
+      .then(function(tickets){
+        res.json(tickets);
+      })
+  },
+
+  updateThresholds: function(req, res) {
+    TicketLevel.find({ where: { authorizationlevel: req.body.authorizationlevel } })
+      .then(function(ticketLevel) {
+        ticketLevel.update({ threshold: req.body.threshold});
+      })
+        .then(function(result) {
+          res.json(result)
+      });
   }
+
 
 };

@@ -27,6 +27,15 @@ module.exports.router = function(app) {
 
   app.put('/unsolved', helpers.isLoggedIn, helpers.tagUnSolved);
 
-  app.get('/signout', helpers.isLoggedIn, helpers.terminateSession)
+  app.get('/ticketLevel', helpers.isLoggedIn, helpers.getThresholds);
 
+  app.put('/ticketLevel', helpers.isLoggedIn, helpers.isAdmin, helpers.updateThresholds);
+
+  app.get('/users', helpers.isLoggedIn, helpers.isAdmin, helpers.getUsers);
+
+  app.put('/users', helpers.isLoggedIn, helpers.isAdmin, helpers.updateUser);
+
+  app.get('/signout', helpers.isLoggedIn, helpers.terminateSession);
+
+  app.get('/userTickets', helpers.isLoggedIn, helpers.getUserTickets);
 };

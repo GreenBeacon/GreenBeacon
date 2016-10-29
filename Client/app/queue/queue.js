@@ -2,18 +2,66 @@
 
 angular.module('app.queue', [])
 
-.controller('QueueController', ['$scope', 'Tickets', 'Auth', '$interval', function($scope, Tickets, Auth, $interval){
 
+.controller('QueueController', ['$scope', 'Tickets', 'Auth', '$location', function($scope, Tickets, Auth, $location){
+  $scope.isadmin = false;
+  $scope.isRed = false;
+  $scope.view;
   $scope.data = {};
   var SVGpulse;
   var SVGdot;
 
+  Socket.on('ticketChange', function() {
+    if ($scope.view === 'lobby') {
+      $scope.initializeQueue();
+    } else if($scope.view === 'user') {
+      $scope.showUserTickets();
+    }
+  });
 
+  //set threshold levels for ticket colors
+  var displayThresholds = function(){
+    Tickets.getThresholds()
+    .then(function(levels) {
+      var setLevels = levels.data;
 
-  var initializeQueue = function() {
+      $scope.student = setLevels.filter(function(level){
+        return level.authorizationlevel === 1;
+      })[0];
+
+      $scope.fellow = setLevels.filter(function(level){
+        return level.authorizationlevel === 2;
+      })[0];
+
+      $scope.teacher = setLevels.filter(function(level){
+        return level.authorizationlevel === 3;
+      })[0];
+    })
+  };
+
+  $scope.initializeQueue = function() {
+    $scope.view = 'lobby';
     //retrieve tickets from database
+    displayThresholds();
     Tickets.getTickets()
       .then(function(results){
+        $scope.isadmin = results.data.isadmin;
+        $scope.userID = results.data.userID;
+        $scope.name = results.data.displayname.split(" ")[0];
+        $scope.authorizationlevel = results.data.authorizationlevel;
+
+        $scope.setUserRole = function() {
+          if ($scope.authorizationlevel === 1) {
+            $scope.role = 'student';
+          } else if ($scope.authorizationlevel === 2) {
+            $scope.role = 'fellow';
+          } else {
+            $scope.role = 'instructor';
+          }
+        };
+        $scope.setUserRole();
+
+
 
         SVGpulse = document.getElementsByClassName('pulse');
         SVGdot = document.getElementsByClassName('dot');
@@ -24,6 +72,7 @@ angular.module('app.queue', [])
         for (var ticket of $scope.data.tickets) {
           //if the userId of the ticket matches the current session user
           if (ticket.userId === results.data.userID) {
+
             //add and set isMine attribute to true
             ticket.ismine = true;
           } else {
@@ -62,124 +111,188 @@ angular.module('app.queue', [])
       })
   }
 
-  $scope.ticket = {};
+  $scope.showUserTickets = function() {
+    $scope.view = 'user';
+    //retrieve tickets from database
+    Tickets.getUserTickets()
+      .then(function(results){
 
-  $scope.addTicket = function () {
-    
-  //assign random color for each ticket's dot
-  function getRandomColor() {
-    var letters = '0123456789ABCDEF'.split(''),
-        color = '#';
-    for(var i = 0; i < 6; i++ ) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
+        SVGpulse = document.getElementsByClassName('pulse');
+        SVGdot = document.getElementsByClassName('dot');
 
-  $scope.ticket.color =  getRandomColor();
+        //add tickets to the scope
+        $scope.data.tickets = results.data.tickets;
+        //iterate through all tickets
+        for (var ticket of $scope.data.tickets) {
+          //if the userId of the ticket matches the current session user
+          if (ticket.userId === results.data.userID) {
 
-  if ($scope.ticket.location === 'Lecture Hall') {
-    $scope.ticket.x = Math.random() * 165 + 25;
-    $scope.ticket.y = Math.random() * 50 + 50;
+            //add and set isMine attribute to true
+            ticket.ismine = true;
+          } else {
+            ticket.ismine = false;
+          }
+        }
 
-  } else if ($scope.ticket.location === 'Pairing Station') {
-    $scope.ticket.x = Math.random() * 165 + 25;
-    $scope.ticket.y = Math.random() * 70 + 140;
+        //set claims to the scope
+        $scope.data.claims = results.data.claims;
 
-  } else if ($scope.ticket.location === 'Kitchen') {
-    $scope.ticket.x = Math.random() * 165 + 25;
-    $scope.ticket.y = Math.random() * 80 + 240;
+        //iterate through all claims
+        for (var claim of $scope.data.claims) {
+          //if the helpee (user) id of the claim matches the current session user
+          if (claim.helpeeId === results.data.userID) {
+            //alert the helpee and include the name of the user who claimed the ticket
+            console.log(claim, 'inside for loop before alert');
+            alert(claim.user.displayname + ' is on their way!');
 
-  } else if ($scope.ticket.location === 'Couch') {
-    $scope.ticket.x = Math.random() * 120 + 250;
-    $scope.ticket.y = Math.random() * 95 + 230;
-
-  } else if ($scope.ticket.location === 'Senior Zone') {
-    $scope.ticket.x = Math.random() * 100 + 270;
-    $scope.ticket.y = Math.random() * 240 + 370;
-
-  } else if ($scope.ticket.location === 'The Hopper') {
-    $scope.ticket.x = Math.random() * 135 + 25;
-    $scope.ticket.y = Math.random() * 80 + 470;
-
-  } else if ($scope.ticket.location === 'The Dijkstra') {
-    $scope.ticket.x = Math.random() * 135 + 25;
-    $scope.ticket.y = Math.random() * 65 + 590;
-
-  } else if ($scope.ticket.location === 'The Ada') {
-    $scope.ticket.x = Math.random() * 80 + 290;
-    $scope.ticket.y = Math.random() * 105 + 655;
-
-  } else if ($scope.ticket.location === 'Entrance Hall') {
-    $scope.ticket.x = Math.random() * 235 + 25;
-    $scope.ticket.y = Math.random() * 70 + 690;
+            for (var ticket of $scope.data.tickets) {
+              //if the ticket's claimed attribute is true and the user of the claimed ticket matches the current session user
+                //set the ticket's preSolved state to true
+                console.log(ticket, 'presolved stuff');
+              if (ticket.claimed && ticket.userId === results.data.userID) {
+                ticket.preSolved = true;
+              }
+            }
+            //Delete the claim from the database
+            console.log(claim, 'about to erase this claim');
+            Tickets.eraseClaim(claim)
+            .then(function () {
+              console.log('erased claim', claim);
+              //wipe out client-side claims object
+               $scope.data.claims = {};
+            })
+          }
+        }
+      })
+      .catch(function(error){
+        console.error(error);
+      })
   }
 
-  //retrieve new ticket from html form, pass to add Ticket function
-  Tickets.addTicket($scope.ticket)
-    .then(function () {
-      $scope.ticket = {};
-      initializeQueue();
-    })
-    .catch(function (err) {
-      console.log(err);
-    });
+  $scope.ticket = {};
+
+  $scope.getCoordinates = function(event) {
+    $scope.ticket.x = event.offsetX - 5;;
+    $scope.ticket.y = event.offsetY - 5;;
+
+    if ($scope.ticket.x <= 258 && $scope.ticket.x >= 102 && $scope.ticket.y <= 85 && $scope.ticket.y >= 16) {
+      $scope.ticket.location = 'Lecture Hall';
+    };
+
+    if ($scope.ticket.x <= 258 && $scope.ticket.x >= 102 && $scope.ticket.y <= 159 && $scope.ticket.y >= 86) {
+      $scope.ticket.location = 'Pairing Stations';
+    };
+
+    if ($scope.ticket.x <= 258 && $scope.ticket.x >= 102 && $scope.ticket.y <= 255 && $scope.ticket.y >= 160) {
+      $scope.ticket.location = 'Kitchen';
+    };
+
+    if ($scope.ticket.x <=393 && $scope.ticket.x >= 259 && $scope.ticket.y <= 255 && $scope.ticket.y >= 160) {
+      $scope.ticket.location = 'Couch';
+    };
+    if ($scope.ticket.x <=393 && $scope.ticket.x >= 232 && $scope.ticket.y <= 484 && $scope.ticket.y >=257) {
+      $scope.ticket.location = 'Senior Zone';
+    };
+    if ($scope.ticket.x <=231 && $scope.ticket.x >= 102 && $scope.ticket.y <= 433 && $scope.ticket.y >=340) {
+      $scope.ticket.location = 'The Hopper';
+    };
+    if ($scope.ticket.x <=231 && $scope.ticket.x >= 102 && $scope.ticket.y <= 507 && $scope.ticket.y >=434) {
+      $scope.ticket.location = 'The Dijkstra';
+    };
+    if ($scope.ticket.x <=393 && $scope.ticket.x >= 311 && $scope.ticket.y <= 595 && $scope.ticket.y >=485) {
+      $scope.ticket.location = 'The Ada';
+    };
+    if ($scope.ticket.x <=310 && $scope.ticket.x >= 101 && $scope.ticket.y <= 595 && $scope.ticket.y >=508) {
+     $scope.ticket.location = 'Entrance Hall';
+    }
+    //  water closet
+    if ($scope.ticket.x <=230 && $scope.ticket.x >= 70 && $scope.ticket.y <= 339 && $scope.ticket.y >=256) {
+     $scope.ticket.location = '';
+     $scope.bathroomAlert = !$scope.bathroomAlert;
+    };
+    // instructors office
+    if ($scope.ticket.x <= 400 && $scope.ticket.x >= 259 && $scope.ticket.y <= 159 && $scope.ticket.y >=16) {
+     $scope.ticket.location = '';
+    };
+
+
+}
+
+
+  $scope.mustAdd = function () {
+
+    if(!$scope.ticket.location){
+      $scope.isRed = true;
+    } else {
+
+    //assign random color for each ticket's dot
+     function getRandomColor() {
+        var letters = '0123456789ABCDEF'.split(''),
+            color = '#';
+        for(var i = 0; i < 6; i++ ) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      };
+
+    $scope.ticket.color =  getRandomColor();
+
+    //retrieve new ticket from html form, pass to add Ticket function
+
+    Tickets.addTicket($scope.ticket)
+      .then(function () {
+        $scope.ticket = {};
+        $scope.isRed = false;
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+    }
   }
 
   $scope.signout = function () {
     Auth.signout();
   }
 
-  $scope.claimTicket = function (ticket) {
-
-    //once 'claim' has been clicked'
-      //pass the claimed ticket to claim Ticket service
-    Tickets.claimTicket(ticket)
-      .then(function () {
-        initializeQueue();
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-
+  $scope.admin = function() {
+    $location.path('/admin');
   }
+
 
   $scope.solveTicket = function (ticket) {
 
     //if 'Solved' has been clicked on the ticket, pass that ticket into solveTicket service
      Tickets.solveTicket(ticket)
        .then(function () {
-         initializeQueue();
        })
        .catch(function (err) {
          console.log(err);
        });
   }
 
+  $scope.claimTicket = function (ticket) {
+    //once 'claim' has been clicked'
+      //pass the claimed ticket to claim Ticket service
+    Tickets.claimTicket(ticket)
+      .catch(function (err) {
+        console.log(err);
+      });
+
+  }
 
   $scope.unsolveTicket = function (ticket) {
 
     //if 'Not Solved' is clicked, pass the ticket to unsolveTicket service
      Tickets.unsolveTicket(ticket)
       .then(function () {
-        initializeQueue();
       })
       .catch(function (err) {
         console.log(err);
       });
   }
 
-  initializeQueue();
-
-  //place initialize queue in an interval so new tickets can be loaded continuously every 3 seconds
-  var interval = $interval(initializeQueue, 3000);
-  var isRunning = true;
-
-
   //functionality: on hover of ticket, hide all dots that do not match ticket's x and y coordinates
   $scope.showDot = function (ticketX, ticketY) {
-    $interval.cancel(interval);
-    isRunning = false;
 
     //iterate through all dots
     for (var i = 0; i < SVGdot.length; i++) {
@@ -195,12 +308,15 @@ angular.module('app.queue', [])
     }
   }
 
-  //renews interval if it has not been running already when hover event is over 
   $scope.renew = function () {
-    if (!isRunning) {
-      initializeQueue();
-      interval = $interval(initializeQueue, 3000);
-      isRunning = true;
+    if ($scope.view === 'lobby') {
+      $scope.initializeQueue();
+    } else if($scope.view === 'user') {
+      $scope.showUserTickets();
     }
+
   };
-}])
+
+  $scope.initializeQueue();
+
+}]);
